@@ -1,0 +1,35 @@
+import networkx as nx
+import h2o
+import ndlib.models.epidemics as ep
+import ndlib.models.ModelConfig as mc
+from ndlib.viz.mpl.DiffusionTrend import DiffusionTrend
+S_sum = 0
+I_sum = 0
+R_sum = 0
+h2o.no_progress()
+for stoch in range(0,100):
+    #network definition
+    g= nx.erdos_renyi_graph(100,.1)
+
+    #model selection
+    model = ep.SIRModel(g)
+
+    # Model Configuration
+    config = mc.Configuration()
+    config.add_model_parameter('beta', 0.0186)
+    config.add_model_parameter('gamma', 0.00613741)
+    config.add_model_parameter("fraction_infected", 0.01)
+    model.set_initial_status(config)
+
+    # Simulation
+    iterations = model.iteration_bunch(200)
+    trends = model.build_trends(iterations)
+
+    viz = DiffusionTrend(model, trends)
+    S_sum = S_sum + iterations[-1]['node_count'][0]
+    I_sum = I_sum + iterations[-1]['node_count'][1]
+    R_sum = R_sum + iterations[-1]['node_count'][2]
+    
+print("Susceptible Population out of 100 people: " + str(S_sum/100))
+print("Infected Population out of 100 people: " + str(I_sum/100))
+print("Recovered Population out of 100 people: " + str(R_sum/100))
