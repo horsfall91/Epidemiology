@@ -1,0 +1,32 @@
+### Use a K-Regular Cayley Tree
+
+### Implement an SI model
+
+import networkx as nx
+import ndlib.models.epidemics as ep
+import ndlib.models.ModelConfig as mc
+
+# Network Definition
+#fh = open("C:/Users/Clayton/Downloads/Cayley_tree.txt", "rb")
+g = nx.erdos_renyi_graph(1000, 0.1)
+# Model Selection
+#model = ep.SIRModel(g)
+
+# SI
+si_model = ep.SIModel(g)
+config = mc.Configuration()
+config.add_model_parameter('beta', 0.001)
+config.add_model_parameter("fraction_infected", 0.05)
+#config.add_model_initial_configuration("Infected", ["0"])
+si_model.set_initial_status(config)
+
+# Simulation
+iterations = si_model.iteration_bunch(200)
+trends = si_model.build_trends(iterations)
+
+from bokeh.io import output_notebook, show
+from ndlib.viz.bokeh.DiffusionTrend import DiffusionTrend
+
+viz = DiffusionTrend(si_model, trends)
+p1 = viz.plot(width=400, height=400)
+show(p1)
