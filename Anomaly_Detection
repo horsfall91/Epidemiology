@@ -1,0 +1,186 @@
+import pandas as pd
+import numpy as np
+#import matplotlib as plt
+import matplotlib.pyplot as plt
+
+df = pd.read_csv('C:/Users/Clayton/Downloads/ILINet.csv')
+
+national_data = df.loc[df['REGION'] == 'National']
+
+years = df.YEAR.unique()
+
+line_dict = {}
+for year in years:
+    year_data = national_data.loc[national_data["YEAR"] == year]
+    weighted_ili = year_data['% WEIGHTED ILI'].tolist()
+    week = year_data["WEEK"].tolist()
+    line_dict[year] = [week,weighted_ili]
+    
+for year in line_dict:
+    x = line_dict[year][0]
+    y = line_dict[year][1]
+    plt.plot(x,y, label = year)
+    
+plt.rcParams["figure.figsize"] = (10,10)
+plt.legend(loc = "upper right")
+plt.show()
+
+##############
+
+plt.close()
+from scipy.stats import norm
+plt.close()
+years2 = years[years != 2020]
+
+year_dict = {}
+histogram_list = []
+le_histogram_list = []
+week_data = national_data.loc[(national_data['YEAR'] <= 2019) & (national_data['WEEK']<= 20)]
+
+weeks = week_data.WEEK.unique()
+
+for week in weeks:
+    week_i = week_data.loc[week_data['WEEK'] == week]
+    weighted_ili = week_i['% WEIGHTED ILI'].tolist()
+    
+    bins = [0,1,2,3,4,5,6,7,8,9,10]
+    le_histogram = np.histogram(weighted_ili, bins = bins)
+    
+    histogram = norm.fit(weighted_ili)   
+    histogram_list.append(list(histogram))
+    le_histogram_list.append(list(le_histogram[0]))
+    
+    ##################################################
+    # Fit a normal distribution to the data:
+    #mu, std = norm.fit(data)
+    mu, std = histogram
+
+    # Plot the histogram.
+    plt.hist(weighted_ili, bins=10, density=True, alpha=0.6, color='g')
+
+    # Plot the PDF.
+    xmin, xmax = plt.xlim()
+    x = np.linspace(xmin, xmax, 100)
+    p = norm.pdf(x, mu, std)
+    plt.plot(x, p, 'k', linewidth=2)
+    title = "Fit results: mu = %.2f,  std = %.2f" % (mu, std)
+    plt.title(title)
+
+    plt.show()
+    ##################################################
+    
+le_histogram_list = np.asarray(le_histogram_list)    
+histogram_list = np.asarray(histogram_list)
+
+probabilities = []
+for w in le_histogram_list:
+    p = []
+    for b in w:
+        prb = b/20
+        p.append(prb)
+    probabilities.append(p)
+
+probabilities = np.asarray(probabilities)
+
+
+print(histogram_list)
+print(probabilities)
+
+##############
+
+import math
+years3 = years[years == 2020]
+week_data = national_data.loc[(national_data['YEAR'] == 2020) & (national_data['WEEK']<= 20)]
+
+weeks = week_data.WEEK.unique()
+print(week_data)
+
+k = 1
+for i in week_data['% WEIGHTED ILI']: 
+    print('Observed ILI in Week ' + str(k) + ' is ' + str(round(i,5)) + ' with probability ' + str(round(norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.ceil(i)) - norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.floor(i)),5)*100) + '%')
+    #print(norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.ceil(i)) - norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.floor(i)))
+    k += 1
+    
+#print(histogram_list)
+
+print(bound_list)
+print(histogram_list)
+
+bound_list = []
+for m, s in histogram_list:
+    bound_list.append(m + (3*s))
+
+k=0
+for i in week_data['% WEIGHTED ILI']: 
+    if i > bound_list[k]:
+        print('Week ' + str(k+1) + ' with weighted ILI of ' + str(round(i,5)) + ' is anomalous')
+    k += 1
+    
+#These anomalous weeks alight with the second/third weeks of March 2020 through the middle/end of April.
+#This makes sense, given this is around when COVID-19 case-coutns took off in the United States.
+
+############
+
+################
+### REGION 2 ###
+################
+from scipy.stats import norm
+plt.close()
+years2 = years[years != 2020]
+
+national_data = df.loc[df['REGION'] == 'Region 2']
+years = df.YEAR.unique()
+
+year_dict = {}
+histogram_list = []
+le_histogram_list = []
+week_data = national_data.loc[(national_data['YEAR'] <= 2019) & (national_data['WEEK']<= 20)]
+
+weeks = week_data.WEEK.unique()
+
+for week in weeks:
+    week_i = week_data.loc[week_data['WEEK'] == week]
+    weighted_ili = week_i['% WEIGHTED ILI'].tolist()
+    
+    bins = [0,1,2,3,4,5,6,7,8,9,10]
+    le_histogram = np.histogram(weighted_ili, bins = bins)
+    
+    histogram = norm.fit(weighted_ili)   
+    histogram_list.append(list(histogram))
+    le_histogram_list.append(list(le_histogram[0]))
+    
+le_histogram_list = np.asarray(le_histogram_list)    
+histogram_list = np.asarray(histogram_list)
+
+probabilities = []
+for w in le_histogram_list:
+    p = []
+    for b in w:
+        prb = b/20
+        p.append(prb)
+    probabilities.append(p)
+
+probabilities = np.asarray(probabilities)
+
+#######
+years3 = years[years == 2020]
+week_data = national_data.loc[(national_data['YEAR'] == 2020) & (national_data['WEEK']<= 20)]
+
+weeks = week_data.WEEK.unique()
+print(week_data)
+
+k = 1
+for i in week_data['% WEIGHTED ILI']: 
+    #print('Observed ILI in Week ' + str(k) + ' is ' + str(round(i,5)) + ' with probability ' + str(round(norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.ceil(i)) - norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.floor(i)),5)*100) + '%')
+    #print(norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.ceil(i)) - norm(histogram_list[k-1][0], histogram_list[k-1][1]).cdf(math.floor(i)))
+    k += 1
+print(histogram_list)
+bound_list = []
+for m, s in histogram_list:
+    bound_list.append(m + (3*s))
+print(bound_list)
+k=0
+for i in week_data['% WEIGHTED ILI']: 
+    if i > bound_list[k]:
+        print('Week ' + str(k+1) + ' with weighted ILI of ' + str(round(i,5)) + ' is anomalous')
+    k += 1
