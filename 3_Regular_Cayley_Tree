@@ -1,0 +1,95 @@
+### set beta = 0.2 in SI model, run 10 steps, recored infected nodes, repeat 100 times.
+
+iters = []
+# Network Definition
+file = open("C:/Users/Clayton/Downloads/Cayley_tree.txt", "rb")
+g = nx.read_edgelist(file)
+
+for i in range(0,100):
+    # SI
+    si_model = ep.SIModel(g)
+    config = mc.Configuration()
+    config.add_model_parameter('beta', 0.2)
+    config.add_model_initial_configuration("Infected", ["0"])
+    
+    si_model.set_initial_status(config)
+    iterations = si_model.iteration_bunch(10)
+    trends = si_model.build_trends(iterations)
+    
+    iters.append(iterations)
+
+infecteds = {}    
+final_infecteds = []    
+for j in iters:
+    infecteds = {'0':1}
+    for itr in j:
+        #print(itr)
+        #print(itr['status'])
+        for key in itr['status'].keys():
+            if itr['iteration'] != 0:
+                infecteds[key] = itr['status'][key]
+    #print(infecteds)
+    final_infecteds.append(infecteds)
+    #print()
+
+print(final_infecteds)
+
+### Now try to calculate the 'center', or the starting point of the epidemic (we know it was the start, but let's test algorithmically
+
+accuracy = [0,0]
+for S_i in final_infecteds:
+    H = g.subgraph(S_i.keys())
+    print(nx.center(H))
+    if '0' in nx.center(H):
+        accuracy[0] +=1
+    accuracy[1] += 1
+
+accuracy_of_center_estimator = accuracy[0]/accuracy[1]   
+print(accuracy_of_center_estimator)
+
+### Now force the starting point to be some node that is NOT the center, and check for accuracy again
+## I'm going to set M = 3 because there is nothing in the problem to suggest which to use...
+iters = []
+# Network Definition
+file = open("C:/Users/Clayton/Downloads/Cayley_tree.txt", "rb")
+g = nx.read_edgelist(file)
+
+for i in range(0,100):
+    # SI
+    si_model = ep.SIModel(g)
+    config = mc.Configuration()
+    config.add_model_parameter('beta', 0.2)
+    config.add_model_initial_configuration("Infected", ["3"])
+    
+    si_model.set_initial_status(config)
+    iterations = si_model.iteration_bunch(10)
+    trends = si_model.build_trends(iterations)
+    
+    iters.append(iterations)
+
+infecteds = {}    
+final_infecteds = []    
+for j in iters:
+    infecteds = {'3':1}
+    for itr in j:
+        #print(itr)
+        #print(itr['status'])
+        for key in itr['status'].keys():
+            if itr['iteration'] != 0:
+                infecteds[key] = itr['status'][key]
+    #print(infecteds)
+    final_infecteds.append(infecteds)
+    #print()
+
+print(final_infecteds)
+
+accuracy = [0,0]
+for S_i in final_infecteds:
+    H = g.subgraph(S_i.keys())
+    #print(nx.center(H))
+    if '3' in nx.center(H):
+        accuracy[0] +=1
+    accuracy[1] += 1
+
+accuracy_of_center_estimator = accuracy[0]/accuracy[1]   
+print(accuracy_of_center_estimator)
